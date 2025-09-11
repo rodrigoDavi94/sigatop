@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using sigatop.Model;
 using sigatop.Services;
 
 namespace sigatop.Controllers;
@@ -21,14 +22,13 @@ public class BuscaEnderecoController(BuscaEnderecoService service) : ControllerB
     [HttpPost("api/VariosCep")]
     public async Task<IActionResult> ListarVarios([FromBody] List<string> ceps)
     {
-        var endereco = await service.BuscarAsync(cep);
-
-        if (endereco == null)
+        var resultados = new List<Endereco?>();
+        foreach (var cep in ceps)
         {
-            return NotFound("CEP não encontrado ou inválido.");
+            var endereco = await service.BuscarAsync(cep);
+            resultados.Add(endereco);
         }
-
-        return Ok(endereco);
+        return Ok(resultados);
     }
 
 }
