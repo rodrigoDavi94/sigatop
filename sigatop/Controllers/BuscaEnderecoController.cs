@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using sigatop.Model;
 using sigatop.Services;
 
 namespace sigatop.Controllers;
@@ -17,4 +18,25 @@ public class BuscaEnderecoController(BuscaEnderecoService service) : ControllerB
 
         return Ok(endereco);
     }
+
+    [HttpPost("api/VariosCep")]
+    public async Task<IActionResult> ListarVarios([FromBody] List<string> ceps)
+    {
+        try
+        {
+            var resultados = new List<Endereco?>();
+            foreach (var cep in ceps)
+            {
+                var endereco = await service.BuscarAsync(cep);
+                resultados.Add(endereco);
+            }
+            return Ok(resultados);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Erro ao processar a solicitação: {ex.Message}");
+        }
+
+        }
+
 }
