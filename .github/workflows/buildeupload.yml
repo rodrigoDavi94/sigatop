@@ -58,4 +58,5 @@ jobs:
           username: rodrigodavi2025-001
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
+          server-dir: /sigatop/
           local-dir: ${{github.workspace}}/publish_output/
