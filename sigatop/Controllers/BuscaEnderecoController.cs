@@ -17,4 +17,18 @@ public class BuscaEnderecoController(BuscaEnderecoService service) : ControllerB
 
         return Ok(endereco);
     }
+
+    [HttpPost("api/VariosCep")]
+    public async Task<IActionResult> ListarVarios([FromBody] List<string> ceps)
+    {
+        var endereco = await service.BuscarAsync(cep);
+
+        if (endereco == null)
+        {
+            return NotFound("CEP não encontrado ou inválido.");
+        }
+
+        return Ok(endereco);
+    }
+
 }
