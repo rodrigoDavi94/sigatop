@@ -1,0 +1,6 @@
+@sigatop_HostAddress = http://localhost:5148
+
+GET {{sigatop_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
