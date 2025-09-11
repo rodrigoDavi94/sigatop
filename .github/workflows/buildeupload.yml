@@ -1,0 +1,61 @@
+name: Build and deploy ASP.Net Core app 
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
+
+      - name: Build with dotnet
+        run: dotnet build --configuration Release
+        env:
+          ASPNETCORE_ENVIRONMENT: Development
+
+      - name: dotnet publish
+        run: dotnet publish -c Release -o ${{github.workspace}}/publish_output
+        env:
+          ASPNETCORE_ENVIRONMENT: Development
+
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
+        with:
+          name: .net-app
+          path: ${{github.workspace}}/publish_output
+
+  deploy:
+    runs-on: windows-latest
+    needs: build
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: .net-app
+          path: ${{github.workspace}}/publish_output
+
+      - name: 📂 Sync files
+        uses: SamKirkland/FTP-Deploy-Action@4.3.3
+        with:
+          server: 	win8135.site4now.net
+          username: rodrigodavi2025-001
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          local-dir: ${{github.workspace}}/publish_output/
