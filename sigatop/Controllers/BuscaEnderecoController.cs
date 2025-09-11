@@ -22,13 +22,21 @@ public class BuscaEnderecoController(BuscaEnderecoService service) : ControllerB
     [HttpPost("api/VariosCep")]
     public async Task<IActionResult> ListarVarios([FromBody] List<string> ceps)
     {
-        var resultados = new List<Endereco?>();
-        foreach (var cep in ceps)
+        try
         {
-            var endereco = await service.BuscarAsync(cep);
-            resultados.Add(endereco);
+            var resultados = new List<Endereco?>();
+            foreach (var cep in ceps)
+            {
+                var endereco = await service.BuscarAsync(cep);
+                resultados.Add(endereco);
+            }
+            return Ok(resultados);
         }
-        return Ok(resultados);
-    }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Erro ao processar a solicitação: {ex.Message}");
+        }
+
+        }
 
 }
