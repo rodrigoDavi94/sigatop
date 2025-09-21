@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - master
+  pull_request:
+    branches:
+      - master
   workflow_dispatch:
 
 jobs:
@@ -18,8 +21,8 @@ jobs:
         uses: sarisia/actions-status-discord@v1
         with:
           webhook: ${{ secrets.DISCORD }}
-          title: "🚀 Novo commit detectado"
-          description: "Iniciando build do projeto sigatop..."
+          title: "${{ github.event_name == 'pull_request' && '🔍 Pull Request detectado' || '🚀 Novo commit detectado' }}"
+          description: "${{ github.event_name == 'pull_request' && 'Iniciando verificação de PR do projeto sigatop...' || 'Iniciando build do projeto sigatop...' }}"
           color: 0x0099ff
           username: "GitHub Actions"
           avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
@@ -46,8 +49,8 @@ jobs:
         uses: sarisia/actions-status-discord@v1
         with:
           webhook: ${{ secrets.DISCORD }}
-          title: "✅ Build concluído com sucesso"
-          description: "O build do projeto sigatop foi concluído sem erros!"
+          title: "${{ github.event_name == 'pull_request' && '✅ Build do PR concluído' || '✅ Build concluído com sucesso' }}"
+          description: "${{ github.event_name == 'pull_request' && 'O build do PR foi concluído sem erros!' || 'O build do projeto sigatop foi concluído sem erros!' }}"
           color: 0x00ff00
           username: "GitHub Actions"
           avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
@@ -85,8 +88,8 @@ jobs:
         uses: sarisia/actions-status-discord@v1
         with:
           webhook: ${{ secrets.DISCORD }}
-          title: "🧪 Iniciando testes unitários"
-          description: "Executando testes do projeto sigatop..."
+          title: "${{ github.event_name == 'pull_request' && '🧪 Testando PR' || '🧪 Iniciando testes unitários' }}"
+          description: "${{ github.event_name == 'pull_request' && 'Executando testes do PR do projeto sigatop...' || 'Executando testes do projeto sigatop...' }}"
           color: 0xffaa00
           username: "GitHub Actions"
           avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
@@ -101,8 +104,8 @@ jobs:
         uses: sarisia/actions-status-discord@v1
         with:
           webhook: ${{ secrets.DISCORD }}
-          title: "✅ Testes concluídos com sucesso"
-          description: "Todos os testes unitários do projeto sigatop passaram!"
+          title: "${{ github.event_name == 'pull_request' && '✅ PR aprovado nos testes' || '✅ Testes concluídos com sucesso' }}"
+          description: "${{ github.event_name == 'pull_request' && 'Todos os testes do PR passaram! 🎉' || 'Todos os testes unitários do projeto sigatop passaram!' }}"
           color: 0x00ff00
           username: "GitHub Actions"
           avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
@@ -118,6 +121,7 @@ jobs:
     runs-on: windows-latest
     needs: [build, test]
     name: 🚀 Deploy
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     environment:
       name: 'Production'
       url: 'https://sigatop.site4now.net'
