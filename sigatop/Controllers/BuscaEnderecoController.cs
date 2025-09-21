@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using sigatop.Model;
 using sigatop.Services;
 
 namespace sigatop.Controllers;
 
-public class BuscaEnderecoController(BuscaEnderecoService service) : ControllerBase
+public class BuscaEnderecoController(IBuscaEnderecoService service) : ControllerBase
 {
     [HttpGet("api/Cep/{cep}")]
     public async Task<IActionResult> Listar([FromRoute] string cep)

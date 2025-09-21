@@ -1,4 +1,4 @@
-name: Build and deploy ASP.Net Core app 
+name: Build, Test and Deploy ASP.Net Core app 
 
 on:
   push:
@@ -9,9 +9,9 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    name: 🔨 Build
 
     steps:
-
       - uses: actions/checkout@v4
 
       - name: 📢 Discord - Novo commit detectado
@@ -29,13 +29,16 @@ jobs:
         with:
           dotnet-version: '8.x'
 
+      - name: Restore dependencies
+        run: dotnet restore
+
       - name: Build with dotnet
-        run: dotnet build --configuration Release
+        run: dotnet build --configuration Release --no-restore
         env:
           ASPNETCORE_ENVIRONMENT: Development
 
       - name: dotnet publish
-        run: dotnet publish -c Release -o ${{github.workspace}}/publish_output
+        run: dotnet publish -c Release -o ${{github.workspace}}/publish_output --no-build
         env:
           ASPNETCORE_ENVIRONMENT: Development
 
@@ -49,32 +52,89 @@ jobs:
           username: "GitHub Actions"
           avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
 
-      - name: Upload artifact for deployment job
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
           path: ${{github.workspace}}/publish_output
 
-  deploy:
+      - name: Upload source code for tests
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-code
+          path: .
+
+  test:
     runs-on: windows-latest
     needs: build
+    name: 🧪 Test
+
+    steps:
+      - name: Download source code
+        uses: actions/download-artifact@v4
+        with:
+          name: source-code
+          path: .
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
+
+      - name: 📢 Discord - Iniciando testes
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD }}
+          title: "🧪 Iniciando testes unitários"
+          description: "Executando testes do projeto sigatop..."
+          color: 0xffaa00
+          username: "GitHub Actions"
+          avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+
+      - name: Restore test dependencies
+        run: dotnet restore
+
+      - name: Run unit tests
+        run: dotnet test --configuration Release --no-restore --verbosity normal --logger trx --results-directory TestResults
+
+      - name: 📢 Discord - Testes bem-sucedidos
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD }}
+          title: "✅ Testes concluídos com sucesso"
+          description: "Todos os testes unitários do projeto sigatop passaram!"
+          color: 0x00ff00
+          username: "GitHub Actions"
+          avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: TestResults
+
+  deploy:
+    runs-on: windows-latest
+    needs: [build, test]
+    name: 🚀 Deploy
     environment:
       name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+      url: 'https://sigatop.site4now.net'
     permissions:
       id-token: write
 
     steps:
-      - name: Download artifact from build job
+      - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           name: .net-app
           path: ${{github.workspace}}/publish_output
 
-      - name: 📂 Sync files
+      - name: 📂 Sync files to production
         uses: SamKirkland/FTP-Deploy-Action@4.3.3
         with:
-          server: 	win8135.site4now.net
+          server: win8135.site4now.net
           username: rodrigodavi2025-001
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
@@ -86,7 +146,18 @@ jobs:
         with:
           webhook: ${{ secrets.DISCORD }}
           title: "🎉 Deploy concluído com sucesso"
-          description: "O projeto sigatop foi enviado para produção com sucesso!"
+          description: "O projeto sigatop foi enviado para produção com sucesso! 🚀"
           color: 0x00ff00
+          username: "GitHub Actions"
+          avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+
+      - name: 📢 Discord - Falha no deploy
+        if: failure()
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD }}
+          title: "❌ Falha no deploy"
+          description: "Ocorreu um erro durante o deploy do projeto sigatop."
+          color: 0xff0000
           username: "GitHub Actions"
           avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
