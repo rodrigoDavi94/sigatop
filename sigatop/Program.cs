@@ -8,7 +8,7 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddScoped<BuscaEnderecoService>();
+builder.Services.AddScoped<IBuscaEnderecoService, BuscaEnderecoService>();
 builder.Services.AddHttpClient<BuscaEnderecoService>();
 var app = builder.Build();
 

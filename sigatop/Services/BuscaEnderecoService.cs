@@ -1,8 +1,8 @@
-﻿using sigatop.Model;
+using sigatop.Model;
 
 namespace sigatop.Services;
 
-public class BuscaEnderecoService(HttpClient httpClient)
+public class BuscaEnderecoService(HttpClient httpClient) : IBuscaEnderecoService
 {
     private readonly HttpClient _httpClient = httpClient;
 
